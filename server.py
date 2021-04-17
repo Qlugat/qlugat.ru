@@ -7,30 +7,19 @@ from cherrypy.lib.static import serve_file
 
 
 
-rus_letters = "абвгдеёжзийклмнопрстуфхцчшщьыъэюя"
-
-def stem_crh (word):
-    word = word.replace("ü", "u")
-    word = word.replace("ı", "i")
-    word = word.replace("ö", "o")
-    word = word.replace("â", "a")
-    word = word.replace("ş", "s")
-    word = word.replace("ğ", "g")
-    word = word.replace("ç", "c")
-    word = word.replace("ñ", "n")
-    word = word.replace("q", "k")
-    return word
-
-def stem_ru(word):
-    word = word.replace("ё", "е")
-    return word
-
 def get_stem(word):
     word = word.lower()
-    if rus_letters.find(word[0]) != -1:
-        return stem_ru(word)
-    else:
-        return stem_crh(word)
+    word = word.replace("â", "a")
+    word = word.replace("ç", "c")
+    word = word.replace("ğ", "g")
+    word = word.replace("ı", "i")
+    word = word.replace("ñ", "n")
+    word = word.replace("ö", "o")
+    word = word.replace("q", "k")
+    word = word.replace("ş", "s")
+    word = word.replace("ü", "u")
+    word = word.replace("ё", "е") # Russian yo
+    return word
 
 def get_all_forms(word):
     l = len(word)

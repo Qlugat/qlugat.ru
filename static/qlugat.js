@@ -1,28 +1,15 @@
-var rusLetters = 'абвгдеёжзийклмнопрстуфхцчшщыъьэюя';
-
-function stemRu(word) {
-    return word.replace(/ё/g, 'е');
-}
-
-function stemCrh(word) {
-    return word.replace(/ü/g, 'u')
-        .replace(/ı/g, 'i')
-        .replace(/ö/g, 'o')
-        .replace(/â/g, 'a')
-        .replace(/ş/g, 's')
-        .replace(/ğ/g, 'g')
-        .replace(/ç/g, 'c')
-        .replace(/ñ/g, 'n')
-        .replace(/q/g, 'k');
-}
-
 function getStem(word) {
-    word = word.toLowerCase();
-    if(rusLetters.indexOf(word[0]) !== -1) {
-        return stemRu(word);
-    } else {
-        return stemCrh(word);
-    }
+    return word.toLowerCase()
+        .replace(/â/g, 'a')
+        .replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g')
+        .replace(/ı/g, 'i')
+        .replace(/ñ/g, 'n')
+        .replace(/ö/g, 'o')
+        .replace(/q/g, 'k')
+        .replace(/ş/g, 's')
+        .replace(/ü/g, 'u')
+        .replace(/ё/g, 'е') // Russian yo
 }
 
 function withStems(list) {
