@@ -46,7 +46,7 @@ class Root(object):
     @cherrypy.tools.json_out()
     def suggest(self, token):
         cur = conn.cursor()
-        cur.execute("""SELECT * FROM "WORD" WHERE stem LIKE %s ORDER BY word""", [get_stem(token)+'%'])
+        cur.execute("""SELECT * FROM "WORD" WHERE stem LIKE %s ORDER BY stem""", [get_stem(token) + '%'])
         res = cur.fetchall()
 
         cur.close()
