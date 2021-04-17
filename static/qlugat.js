@@ -58,11 +58,13 @@ var app = new Vue({
                 this.list = [];
                 this.pos = -1;
                 this.dictEntry = null;
-            } else if (word.length === 1 && !this.suggestDb[stem]) {
-                fetch('/suggest?token=' + word).then(response => response.json()).then(data => {
-                    this.suggestDb[stem] = withStems(data);
-                    this.updateList(getStem(this.word));
-                });
+            } else if (!this.suggestDb[stem[0]]) {
+                fetch('/suggest?token=' + word[0])
+                    .then(response => response.json())
+                    .then(data => {
+                        this.suggestDb[stem[0]] = withStems(data);
+                        this.updateList(getStem(this.word));
+                    });
             } else {
                 var suggestList = this.suggestDb[stem[0]];
                 if (suggestList) {
