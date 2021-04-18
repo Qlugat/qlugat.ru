@@ -85,7 +85,7 @@ var app = new Vue({
             } else if (this.startPos + 1 < this.suggestList.length - 2 * maxListLength) {
                 this.startPos += maxListLength;
                 this.scrollList();
-            } else {
+            } else if (this.suggestList.length > maxListLength) {
                 this.startPos = this.suggestList.length - maxListLength;
                 this.scrollList();
             }
