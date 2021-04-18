@@ -19,13 +19,16 @@ function withStems(list) {
     return outList;
 }
 
+const maxListLength = 20;
+
 var app = new Vue({
     el: '#app',
     data: {
-        start: true,
+        startPos: -1,
         pos: -1,
         word: '',
         dictEntry: null,
+        suggestList: [],
         list: [],
         suggestDb: {}
     },
@@ -42,20 +45,58 @@ var app = new Vue({
         submitButton: function(event) {
             this.submit(this.word);
         },
-        upHandler: function (event) {
-          event.preventDefault();
-          this.pos && this.pos--;
+        scrollList: function() {
+            this.list = this.suggestList.slice(this.startPos, this.startPos + maxListLength);
         },
-        downHandler: function (event) {
+        upHandler: function(event) {
             event.preventDefault();
-            ((this.pos + 1) < this.list.length) && this.pos++;
+            if (this.pos > 0) {
+                this.pos--;
+            } else if (this.startPos > 0) {
+                this.startPos--;
+                this.scrollList();
+            }
+        },
+        downHandler: function(event) {
+            event.preventDefault();
+            if (this.pos + 1 < this.list.length) {
+                this.pos++;
+            } else if (this.startPos + 1 < this.suggestList.length - this.pos) {
+                this.startPos++;
+                this.scrollList();
+            }
+        },
+        pageUpHandler: function(event) {
+            event.preventDefault();
+            if (this.pos > 0) {
+                this.pos = 0;
+            } else if (this.startPos > maxListLength) {
+                this.startPos -= maxListLength;
+                this.scrollList();
+            } else if (this.startPos > 0) {
+                this.startPos = 0;
+                this.scrollList();
+            }
+        },
+        pageDownHandler: function(event) {
+            event.preventDefault();
+            if (this.pos + 1 < this.list.length) {
+                this.pos = this.list.length - 1;
+            } else if (this.startPos + 1 < this.suggestList.length - 2 * maxListLength) {
+                this.startPos += maxListLength;
+                this.scrollList();
+            } else {
+                this.startPos = this.suggestList.length - maxListLength;
+                this.scrollList();
+            }
         },
         wordChangedHandler: function(event) {
-            this.start = false;
             const word = event.target.value;
             const stem = getStem(word);
             if (word.length === 0) {
+                this.suggestList = [];
                 this.list = [];
+                this.startPos = -1;
                 this.pos = -1;
                 this.dictEntry = null;
             } else if (!this.suggestDb[stem[0]]) {
@@ -66,20 +107,18 @@ var app = new Vue({
                         this.updateList(getStem(this.word));
                     });
             } else {
-                var suggestList = this.suggestDb[stem[0]];
-                if (suggestList) {
-                    this.updateList(stem);
-                }
+                this.updateList(stem);
             }
         },
         updateList: function(stem) {
-            var suggestList = this.suggestDb[stem[0]];
-            this.list = stem ?
-                suggestList.filter(item => {
+            this.suggestList = stem ?
+                this.suggestDb[stem[0]].filter(item => {
                     return item.stem.startsWith(stem)
-                }).slice(0, 20) : [];
+                }) : [];
+            this.startPos = 0;
             this.pos = 0;
-            if (this.list.length == 1) {
+            this.scrollList();
+            if (this.suggestList.length == 1) {
                 this.submit(this.list[0].word);
             }
         },
