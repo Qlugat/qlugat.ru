@@ -26,24 +26,52 @@ var app = new Vue({
     data: {
         startPos: -1,
         pos: -1,
-        word: '',
+        wordInput: '',
+        wordSelected: '',
         dictEntry: null,
         suggestList: [],
         list: [],
-        suggestDb: {}
+        historyList: [],
+        suggestDb: {},
+        wordsDb: {}
     },
     methods: {
+        isActiveWord(property){
+            return {
+              'history-entry__active': this.wordSelected == property,
+            }
+        },
         submit: function (word) {
-            fetch('/get_json?word=' + word).then(response => response.json()).then(data => {
-                this.dictEntry = (Object.keys(data).length === 0) ? null : data;
-            });
+            if (!this.wordsDb[word]) {
+                fetch('/server.php?action=get_word&word=' + word).then(response => response.json()).then(data => {
+                    if (Object.keys(data).length === 0) {
+                        this.dictEntry = null;
+                    } else {
+                        this.dictEntry = data;
+                        this.wordsDb[word] = data;
+                        if (this.historyList.indexOf(word) == -1) {
+                            this.historyList.push(word);
+                        }
+                    }
+                });
+            } else {
+                this.dictEntry = this.wordsDb[word];
+            }
+            
         },
         submitEnter: function(event) {
-            const word = this.list.length ? this.list[this.pos].word : this.word;
+            let word;
+            if (this.list.length) {
+                word = this.list[this.pos].word;
+                this.wordSelected = word;
+            } else {
+                word = this.wordInput;
+            }
+            
             word && this.submit(word);
         },
         submitButton: function(event) {
-            this.submit(this.word);
+            this.submit(this.wordInput);
         },
         scrollList: function() {
             this.list = this.suggestList.slice(this.startPos, this.startPos + maxListLength);
@@ -99,12 +127,13 @@ var app = new Vue({
                 this.startPos = -1;
                 this.pos = -1;
                 this.dictEntry = null;
+                this.wordSelected = '';
             } else if (!this.suggestDb[stem[0]]) {
-                fetch('/suggest?token=' + word[0])
+                fetch('/server.php?action=suggest&word=' + word[0])
                     .then(response => response.json())
                     .then(data => {
                         this.suggestDb[stem[0]] = withStems(data);
-                        this.updateList(getStem(this.word));
+                        this.updateList(getStem(this.wordInput));
                     });
             } else {
                 this.updateList(stem);
@@ -119,14 +148,21 @@ var app = new Vue({
             this.pos = 0;
             this.scrollList();
             if (this.suggestList.length == 1) {
-                this.submit(this.list[0].word);
+                const word = this.list[0].word;
+                this.wordSelected = word;
+                this.submit(word);
             }
         },
         itemClick: function(item, index) {
-            this.word = item;
+            this.wordSelected = item;
             this.pos = index;
             this.dictEntry = null;
             this.submit(item);
+        },
+        historyItemClick: function(word) {
+            this.wordSelected = word;
+            this.dictEntry = null;
+            this.submit(word);
         },
         accentize: function(word, article) {
             var pos = article.accent_pos;
@@ -136,25 +172,37 @@ var app = new Vue({
                 return word;
             }
         },
+        insert_and_submit: function(str) {
+            var word = str.split(' ')[0];
+            this.wordSelected = word;
+            this.submit(word);
+        },
         json2html: function(input, word, dictEntry) {
             var pos = dictEntry.shortening_pos;
-            if (pos) {
-                input = input.replace(/~/g, word.substring(0, pos));
+            if (pos != null) {
+                input = input.replace(/~/g, pos == '0' ? word : word.substring(0, pos));
             }
-//            input = input.replace(/^(.[^)].+? )-( .+?)$/mg,'<span class="example">$1─$2</span>');
-//            input = input.replace(/\/(.+?)\//g,'<i class="spec">$1</i>');
-//            input = input.replace(/^(ср|см)\. (.+)$/mg,
-//                function(str, p1, p2, offset, s) {
-//                    var words = p2.split(/\s*,\s*/);
-//                    var links = '';
-//                    words.each(function(val, index, arr) {
-//                        links += '<a href="#" onclick="return qlugat.insert_and_submit(\''+val+'\');" >'+val+'</a>, ';
-//                    });
-//                    return '<i class="link">'+p1+'.</i> '+links.slice(0, -2);
-//                });
-            input = input.replace(/(лингв|перен|физ|хим|бот|биол|зоо|грам|геогр|астр|шк|мат|анат|ирон|этн|стр|рел|посл|уст)\./g,'<i class="spec">$&</i>');
-            input = input.replace('◊', '\n◊\n');
-            input = input.replace(/\\n/g, '<br/>');
+            
+            input = input.replace(/\\n/g, '\n');
+
+            if (dictEntry.dict == 'crh-ru') {
+                input = input.replace(/(лингв|перен|физ|хим|бот|биол|зоо|грам|геогр|астр|шк|мат|анат|ирон|этн|стр|рел|посл|уст)\./g,'<i class="spec">$&</i>');
+                input = input.replace(/\/(.+?)\//g,'<i class="spec">$1</i>');
+            }
+            
+
+            input = input.replace(/(ср|см)\. (.+)$/mg,
+               function(str, p1, p2, offset, s) {
+                   var words = p2.split(/\s*,\s*/);
+                   var links = '';
+                   words.forEach(function(val, index, arr) {
+                       links += '<a href="#" onclick="return app.insert_and_submit(\''+val+'\');" >'+val+'</a>, ';
+                   });
+                   return '<i class="link">'+p1+'.</i> '+links.slice(0, -2);
+               }
+            );
+            input = input.replace(/^(.[^)].+?) - (.+?)$/mg,'<b>$1</b> $2');
+            input = input.replace('◊', '\n◊\n'); 
             input = input.replace(/\n/g, '<br/>');
             input = input.replace(/; /g, '<br/>');
             return input;
