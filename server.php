@@ -2,7 +2,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 function get_stem($word) {
-    $word = strtolower($word);
+    $word = mb_strtolower($word);
     $word = str_replace('ё', 'е', $word);
     $word = str_replace('â', 'a', $word);
     $word = str_replace('ç', 'c', $word);

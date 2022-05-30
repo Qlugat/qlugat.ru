@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, user-scalable=yes">
     <style>
       [v-cloak] {display: none}
+      .app {font-size: 14px;}
       .app table { border-collapse: initial; }
       .app li, .app dd, .app dt, .app input {font-family: monospace;}
       .app ol {
@@ -39,7 +40,6 @@
         display: block;
         height: 34px;
         padding: 6px 12px;
-        font-size: 14px;
         line-height: 1.42857143;
         color: #555;
         background-color: #fff;
@@ -70,7 +70,6 @@
           background-color: rgb(247, 247, 247);
           border: 1px solid rgb(169, 169, 169);
           list-style-type: none;
-          font-size: 14px;
           min-height: 40ex;
           min-width: 21ex;
       }
@@ -84,7 +83,6 @@
           display: inline-block;
           padding: 6px 12px;
           margin-bottom: 0;
-          font-size: 14px;
           font-weight: 400;
           line-height: 1.42857143;
           text-align: center;
@@ -127,6 +125,7 @@
         color: grey;
         cursor: pointer;
         border-radius: 3px;
+        font-family: sans-serif;
       }
       .app .history-entry__active {
         color: black;
@@ -163,7 +162,7 @@
                 v-on:input="wordChangedHandler"
                 />
               <button class="btn btn-primary"
-                      v-on:click="submitButton">OK
+                      v-on:click="submitEnter">OK
               </button>
             </div>
 

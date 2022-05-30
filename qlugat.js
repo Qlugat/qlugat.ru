@@ -70,9 +70,6 @@ var app = new Vue({
             
             word && this.submit(word);
         },
-        submitButton: function(event) {
-            this.submit(this.wordInput);
-        },
         scrollList: function() {
             this.list = this.suggestList.slice(this.startPos, this.startPos + maxListLength);
         },
